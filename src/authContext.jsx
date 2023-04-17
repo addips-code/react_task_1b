@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useEffect } from "react";
 import MkdSDK from "./utils/MkdSDK";
 
 export const AuthContext = React.createContext();
@@ -50,12 +50,11 @@ export const tokenExpireError = (dispatch, errorMessage) => {
 const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     if (token && role) {
-      sdk
-        .verifyToken(token)
+      sdk.verifyToken(token)
         .then((response) => {
           dispatch({
             type: "LOGIN",
@@ -72,7 +71,31 @@ const AuthProvider = ({ children }) => {
           }
         });
     }
-  }, []);  
+  }, []);
+
+  useEffect(() => {
+    const myHeaders = new Headers();
+    myHeaders.append("x-project", "cmVhY3R0YXNrOmQ5aGVkeWN5djZwN3p3OHhpMzR0OWJtdHNqc2lneTV0Nw==");
+    myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2ODE3NTIyODgsImV4cCI6MTY4MTc1NTg4OH0.lpDUomtR18QBEklUI51QR-KmBKZJxW2TVdrneNRpJGU");
+    myHeaders.append("Content-Type", "application/json");
+
+    const raw = JSON.stringify({
+      "page": 2,
+      "limit": 10
+    });
+
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    fetch("https://reacttask.mkdlabs.com/v1/api/rest/video/PAGINATE", requestOptions)
+      .then(response => response.text())
+      .then(result => console.log(result))
+      .catch(error => console.log('error', error));
+  }, []);
 
   return (
     <AuthContext.Provider
